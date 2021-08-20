@@ -1,0 +1,4 @@
+sample:
+- bsub_assemblies
+outdir: outputs
+metagenome_trim_memory: 1e9
