@@ -249,7 +249,7 @@ rule generate_bsub_lineages:
 rule download_bsub_assemblies:
     input: 
         gather_grist = "outputs/genbank/bsub_assemblies.x.genbank.gather.csv",
-        conf = "conf//genome-grist-conf.yml"
+        conf = "conf/genome-grist-conf.yml"
     output: "genbank_genomes/{acc}_genomic.fna.gz"
     conda: "envs/genome-grist.yml"
     resources:
