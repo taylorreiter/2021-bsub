@@ -11,4 +11,4 @@ dependencies:
     - mamba
     - sourmash>=4.2.0,<5
     - pip:
-      - git+https://github.com/dib-lab/charcoal@patch-targets
+      - git+https://github.com/dib-lab/charcoal@latest
