@@ -341,13 +341,20 @@ rule translate_roary_pangenome:
     '''
 
 rule eggnog_roary_pangenome:
-    input: 'outputs/charcoal_bsub_roary/pan_genome_reference.faa' 
+    input: 
+         faa = 'outputs/charcoal_bsub_roary/pan_genome_reference.faa',
+         db = 'inputs/eggnog_db/eggnog.db'
+    output: "outputs/charcoal_bsub_eggnog/charcoal_bsub_roary.emapper.annotations"
     conda: 'envs/eggnog.yml'
     resources:
-        mem_mb = 16000
+        mem_mb = 64000
     threads: 8
+    params: 
+        outdir = "outputs/charcoal_bsub_eggnog/",
+        dbdir = "inputs/eggnog_db",
+        out_prefix = "charcoal_bsub_roary"
     shell:'''
-    emapper.py --cpu {threads} -i ../../test_roary/outputs/roary_with_megahit_and_isolates/pan_genome_reference.faa --output pan_genome_reference --output_dir megahit_and_isolates_eggnog -m diamond -d none --tax_scope auto --go_evidence non-electronic --target_orthologs all --seed_ortholog_evalue 0.001 --seed_ortholog_score 60 --query-cover 20 --subject-cover     0 --override --temp_dir ~/github/2020-ibd/tmp/ -d bact --data_dir ~/github/2020-ibd/inputs/eggnog_db
+    emapper.py --cpu {threads} -i {input.faa} --output {params.out_prefix} --output_dir {params.outdir} -m diamond -d none --tax_scope auto --go_evidence non-electronic --target_orthologs all --seed_ortholog_evalue 0.001 --seed_ortholog_score 60 --query-cover 20 --subject-cover 0 --override --temp_dir tmp/ -d bact --data_dir {params.dbdir}
     '''
 
 #############################################
