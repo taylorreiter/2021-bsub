@@ -298,6 +298,58 @@ rule touch_decontaminated_bsub:
     shell:'''
     touch {output}
     '''
+
+rule prokka_decontaminated_bsub:
+    output: 
+        ffn = 'outputs/charcoal_bsub_prokka/{acc}/{acc}.ffn',
+        faa = 'outputs/charcoal_bsub_prokka/{acc}/{acc}.faa',
+        gff = 'outputs/charcoal_bsub_prokka/{acc}/{acc}.gff',
+    input: 'outputs/charcoal/{acc}_genomic.fna.gz.clean.fa.gz'
+    conda: 'envs/prokka.yml'
+    resources:
+        mem_mb = 8000
+    threads: 2
+    params: 
+        outdir = lambda wildards: 'outputs/prokka_charcoal_bsub/' + wildcards.acc
+        #prefix = lambda wildcards: wildcards.acc,
+    shell:'''
+    prokka <(zcat {input}) --outdir {params.outdir} --prefix {wildcards.acc} --metagenome --force --locustag {wildcards.acc} --cpus {threads} --centre X --compliant
+    '''
+
+rule roary_decontaminated_bsub:
+    input: Checkpoint_GatherResults('outputs/charcoal_bsub_prokka/{acc}/{acc}.gff')
+    output: 'outputs/charcoal_bsub_roary/pan_genome_reference.fa' 
+    conda: 'envs/roary.yml'
+    resources:
+        mem_mb = 16000
+    threads: 2
+    params: 
+        outdir = 'outputs/charcoal_bsub_roary/'
+    shell:'''
+    roary -e -n -f {params.outdir} -p {threads} -z {input}
+    '''
+
+rule translate_roary_pangenome:
+    input: 'outputs/charcoal_bsub_roary/pan_genome_reference.fa' 
+    output: 'outputs/charcoal_bsub_roary/pan_genome_reference.faa' 
+    conda: 'envs/emboss.yml'
+    resources:
+        mem_mb = 16000
+    threads: 2
+    shell:'''
+    transeq {input} {output}
+    '''
+
+rule eggnog_roary_pangenome:
+    input: 'outputs/charcoal_bsub_roary/pan_genome_reference.faa' 
+    conda: 'envs/eggnog.yml'
+    resources:
+        mem_mb = 16000
+    threads: 8
+    shell:'''
+    emapper.py --cpu {threads} -i ../../test_roary/outputs/roary_with_megahit_and_isolates/pan_genome_reference.faa --output pan_genome_reference --output_dir megahit_and_isolates_eggnog -m diamond -d none --tax_scope auto --go_evidence non-electronic --target_orthologs all --seed_ortholog_evalue 0.001 --seed_ortholog_score 60 --query-cover 20 --subject-cover     0 --override --temp_dir ~/github/2020-ibd/tmp/ -d bact --data_dir ~/github/2020-ibd/inputs/eggnog_db
+    '''
+
 #############################################
 # Spacegraphcats Genome Queries
 #############################################
