@@ -46,7 +46,8 @@ class Checkpoint_GatherResults:
 
 rule all:
     input:
-         Checkpoint_GatherResults("outputs/charcoal/{acc}_genomic.fna.gz.clean.fa.gz")
+         Checkpoint_GatherResults("outputs/charcoal/{acc}_genomic.fna.gz.clean.fa.gz"),
+         "outputs/charcoal_bsub_eggnog/charcoal_bsub_roary.emapper.annotations"
 
 ########################################
 ## PREPROCESSING
@@ -295,6 +296,9 @@ rule touch_decontaminated_bsub:
         "outputs/charcoal/stage1_hitlist.csv",
         "outputs/charcoal/clean_finished.txt"
     output: "outputs/charcoal/{acc}_genomic.fna.gz.clean.fa.gz"
+    resources:
+        mem_mb = 1000
+    threads: 1
     shell:'''
     touch {output}
     '''
@@ -310,7 +314,7 @@ rule prokka_decontaminated_bsub:
         mem_mb = 8000
     threads: 2
     params: 
-        outdir = lambda wildards: 'outputs/prokka_charcoal_bsub/' + wildcards.acc
+        outdir = lambda wildcards: 'outputs/prokka_charcoal_bsub/' + wildcards.acc
         #prefix = lambda wildcards: wildcards.acc,
     shell:'''
     prokka <(zcat {input}) --outdir {params.outdir} --prefix {wildcards.acc} --metagenome --force --locustag {wildcards.acc} --cpus {threads} --centre X --compliant
