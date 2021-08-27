@@ -324,7 +324,7 @@ rule prokka_decontaminated_bsub:
         mem_mb = 8000
     threads: 2
     params: 
-        outdir = lambda wildcards: 'outputs/prokka_charcoal_bsub/' + wildcards.acc
+        outdir = lambda wildcards: 'outputs/charcoal_bsub_prokka/' + wildcards.acc
         #prefix = lambda wildcards: wildcards.acc,
     shell:'''
     prokka {input} --outdir {params.outdir} --prefix {wildcards.acc} --metagenome --force --locustag {wildcards.acc} --cpus {threads} --centre X --compliant
