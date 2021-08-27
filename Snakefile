@@ -258,7 +258,7 @@ rule download_bsub_assemblies:
     threads: 1
     shell:'''
     genome-grist run {input.conf} --until make_sgc_conf --nolock
-    touch {output}
+    ls {output}
     '''
 
 rule generate_charcoal_genome_list:
@@ -283,8 +283,8 @@ rule charcoal_decontaminate_bsub:
         hitlist="outputs/charcoal/stage1_hitlist.csv",
         clean_finished="outputs/charcoal/clean_finished.txt"
     resources:
-        mem_mb = 128000
-    threads: 8
+        mem_mb = 64000
+    threads: 4
     conda: "envs/charcoal.yml"
     shell:'''
     python -m charcoal run {input.conf} -j {threads} clean --nolock --latency-wait 15 --rerun-incomplete
@@ -300,7 +300,17 @@ rule touch_decontaminated_bsub:
         mem_mb = 1000
     threads: 1
     shell:'''
-    touch {output}
+    ls {output}
+    '''
+
+rule gunzip_decontaminated_bsub:
+    input: "outputs/charcoal/{acc}_genomic.fna.gz.clean.fa.gz"
+    output: "outputs/charcoal/{acc}_genomic.fna.gz.clean.fa"
+    resources:
+        mem_mb = 1000
+    threads: 1
+    shell:'''
+    gunzip -c {input} > {output}
     '''
 
 rule prokka_decontaminated_bsub:
@@ -308,7 +318,7 @@ rule prokka_decontaminated_bsub:
         ffn = 'outputs/charcoal_bsub_prokka/{acc}/{acc}.ffn',
         faa = 'outputs/charcoal_bsub_prokka/{acc}/{acc}.faa',
         gff = 'outputs/charcoal_bsub_prokka/{acc}/{acc}.gff',
-    input: 'outputs/charcoal/{acc}_genomic.fna.gz.clean.fa.gz'
+    input: 'outputs/charcoal/{acc}_genomic.fna.gz.clean.fa'
     conda: 'envs/prokka.yml'
     resources:
         mem_mb = 8000
@@ -317,7 +327,7 @@ rule prokka_decontaminated_bsub:
         outdir = lambda wildcards: 'outputs/prokka_charcoal_bsub/' + wildcards.acc
         #prefix = lambda wildcards: wildcards.acc,
     shell:'''
-    prokka <(zcat {input}) --outdir {params.outdir} --prefix {wildcards.acc} --metagenome --force --locustag {wildcards.acc} --cpus {threads} --centre X --compliant
+    prokka {input} --outdir {params.outdir} --prefix {wildcards.acc} --metagenome --force --locustag {wildcards.acc} --cpus {threads} --centre X --compliant
     '''
 
 rule roary_decontaminated_bsub:
